@@ -1,4 +1,4 @@
-import socket, pickle, random, math
+import socket, pickle, random, math, RSA as rsa
 
 
 def permute(k, arr, n):
@@ -180,56 +180,26 @@ def ecb_decrypt(ciphertext, rkb, rk):
     
     return plaintext
 
-# ==================  RSA ALGO ==================
 
-def is_prime(number):
-    if number < 2:
-        return False
-    for i in range(2, number // 2+1):
-        if number % i == 0:
-            return False
-    return True
-
-def generate_prime(min_value, max_value):
-    prime = random.randint(min_value, max_value)
-    while not is_prime(prime):
-        prime = random.randint(min_value, max_value)
-    return prime
-
-def mod_inverse(e, phi):
-    for d in range(3, phi):
-        if (d * e) % phi == 1:
-            return d
-    return ValueError('No mod inverse found')
-
-def encrypt_rsa(msg, e, n):
-    msg_encoded = [ord(c) for c in msg]
-    # (m^e) mod n = chipertext
-    # pow(c, e, n) = c^e mod n
-    chipertext = [pow(c, e, n) for c in msg_encoded]
-    return chipertext
-
-def decrypt_rsa(chipertext, d, n):
-    # decryption
-	msg_encoded = [pow(ch, d, n) for ch in chipertext]
-	msg = ''.join([chr(c) for c in msg_encoded])
-	return msg
 
 def start_client():
     # RSA
 
-    p = generate_prime(100, 1000)
-    q = generate_prime(100, 1000)
-    n = p * q
+    # p = generate_prime(100, 1000)
+    # q = generate_prime(100, 1000)
+    # n = p * q
 
-    phi = (p-1) * (q-1)
+    # phi = (p-1) * (q-1)
 
-    e = random.randint(3, phi-1)
+    # e = random.randint(3, phi-1)
 
-    while math.gcd(e, phi) != 1:
-        e = random.randint(3, phi-1)
+    # while math.gcd(e, phi) != 1:
+    #     e = random.randint(3, phi-1)
         
-    d = mod_inverse(e, phi)
+    # d = mod_inverse(e, phi)
+    e = 2123
+    d = 77171
+    n = 118403
 
     print("Public Key Bob(e, n) : ", e, n)
     print("Private Key Bob(d, n) : ", d, n)
@@ -241,18 +211,23 @@ def start_client():
 
 
 #   KONEK
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
-    port = 12345
-    client_socket.connect((host, port))
+    port = 12346
+    server_socket.bind((host, port))
 
+    server_socket.listen()
 
-    print(f"Terhubung ke server di {host}:{port}")
+    print(f"Server berjalan di {host}:{port}")
 
-
-
+    client_socket, addr = server_socket.accept()
+    print(f"Menerima koneksi dari {addr} \n")
+    
     alice = client_socket.recv(2048)
     alice = pickle.loads(alice)
+
     e_alice = alice["e"]
     n_alice = alice["n"]  
 
@@ -270,7 +245,7 @@ def start_client():
         cipher_text = data_rec["ciphertext_h1"]
         key = data_rec["key"]
 
-        key_decrypt = decrypt_rsa(key, d, n)
+        key_decrypt = rsa.decrypt_rsa(key, d, n)
 
         
         
@@ -279,7 +254,7 @@ def start_client():
         # key_decrypt_second = decrypt_rsa(key_decrypt_first, e_alice, n_alice)
         # print(f"Key decrypt RSA second: {key_decrypt_second}")
 
-        key = key_decrypt
+        key = key_decrypt_second
         key = hex2bin(key)
 
         keyp = [57, 49, 41, 33, 25, 17, 9,
