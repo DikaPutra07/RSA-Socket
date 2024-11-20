@@ -1,4 +1,4 @@
-import socket, random, pickle, math
+import socket, random, pickle, math, json
 import RSA as rsa
 
 def permute(k, arr, n):
@@ -173,18 +173,22 @@ def start_server():
     # RSA
 
     alice_key = "ABCDEF0123456789"
-    p = rsa.generate_prime(100, 1000)
-    q = rsa.generate_prime(100, 1000)
-    n = p * q
+    # p = rsa.generate_prime(100, 1000)
+    # q = rsa.generate_prime(100, 1000)
+    # n = p * q
 
-    phi = (p-1) * (q-1)
+    # phi = (p-1) * (q-1)
 
-    e = random.randint(3, phi-1)
+    # e = random.randint(3, phi-1)
 
-    while math.gcd(e, phi) != 1:
-        e = random.randint(3, phi-1)
+    # while math.gcd(e, phi) != 1:
+    #     e = random.randint(3, phi-1)
 
-    d = rsa.mod_inverse(e, phi)
+    # d = rsa.mod_inverse(e, phi)
+
+    e = 543059
+    d = 251963
+    n = 730801
 
     print(f"Public key Alice(e, n): ({e}, {n})")
     print(f"Private key Alice(d, n): ({d}, {n})")
@@ -206,11 +210,23 @@ def start_server():
     # Meminta kunci publik B
     pka_socket.send(b"Bob")
     public_key_bob = pickle.loads(pka_socket.recv(2048))
-    n_pka = 118403
-    d_pka = 12939
-    e_pka = 2123
+    # public_key_bob = pka_socket.recv(2048)
+    # n_pka = 118403
+    # d_pka = 12939
+    # e_pka = 2123
+
+    e_pka=17
+    n_pka=3233
+    d_pka=2753 
+    # 
+    # print(f"Kunci publik Bob diterima sblm load: {public_key_bob}")
+    # public_key_bob = json.loads(public_key_bob)
+    print(f"Kunci publik Bob diterima sblm decrypt: {public_key_bob}")
+    print(f"type of public_key_bob: {type(public_key_bob)}")
     public_key_bob = rsa.decrypt_rsa(public_key_bob, e_pka, n_pka)
-    # print(f"Kunci publik Bob diterima: {public_key_b}")
+    print(f"type of public_key_bob stelah decrypt: {type(public_key_bob)}")
+    print(f"Kunci publik Bob diterima stelah decrypt: {public_key_bob}")
+    public_key_bob = json.loads(public_key_bob)
     pka_socket.close()
 
 
@@ -223,25 +239,30 @@ def start_server():
 
 
     print(f"Terhubung ke server di {host}:{port}")
-    b_socket.send(pickle.dumps(alice))
+    # b_socket.send(pickle.dumps(alice))
 
 
-    bob = b_socket.recv(2048)
-    bob = pickle.loads(bob)
+    # bob = b_socket.recv(2048)
+    # bob = pickle.loads(bob)
     
-    # e_bob = public_key_bob["e"]
-    # n_bob = public_key_bob["n"]
+    
+    e_bob = public_key_bob["e"]
+    n_bob = public_key_bob["n"]
 
     
-    e_bob = bob["e"]
-    n_bob = bob["n"]
+    # e_bob = bob["e"]
+    # n_bob = bob["n"]
 
     print("e Bob: ", e_bob)
     print("n Bob: ", n_bob)
 
     # print("key encrypt RSA: ", key_encrypt)
 
-    key_encrypt = rsa.encrypt_rsa(alice_key, e_bob, n_bob)
+    key_encrypt_first = rsa.encrypt_rsa(alice_key, d, n)
+
+    key_encrypt_first = json.dumps(key_encrypt_first)
+    
+    key_encrypt_second = rsa.encrypt_rsa(key_encrypt_first, e_bob, n_bob)
     
     # print("key encrypt RSA: ", key_encrypt)
 
@@ -323,8 +344,8 @@ def start_server():
 
         data = {
             "ciphertext_h1": ciphertext_h1,
-            # "key": key_encrypt_second,
-            "key": key_encrypt
+            "key": key_encrypt_second,
+            # "key": key_encrypt
         }
 
         b_socket.send(pickle.dumps(data))

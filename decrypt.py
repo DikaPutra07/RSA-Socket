@@ -1,4 +1,4 @@
-import socket, pickle, random, math, RSA as rsa
+import socket, pickle, random, math, RSA as rsa, json
 
 
 def permute(k, arr, n):
@@ -212,6 +212,24 @@ def start_client():
 
 #   KONEK
 
+    pka_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    host = socket.gethostname()
+    port = 12345
+    pka_socket.connect((host, port))
+
+    # Meminta kunci publik B
+    pka_socket.send(b"Alice")
+    public_key_alice = pickle.loads(pka_socket.recv(2048))
+    e_pka=17
+    n_pka=3233
+    d_pka=2753 
+    
+    public_key_alice = rsa.decrypt_rsa(public_key_alice, e_pka, n_pka)
+    # public_key_alice = json.loads(public_key_alice)
+    # print(f"Kunci publik Bob diterima: {public_key_b}")
+    public_key_alice = json.loads(public_key_alice)
+    pka_socket.close()
+
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
@@ -225,13 +243,16 @@ def start_client():
     client_socket, addr = server_socket.accept()
     print(f"Menerima koneksi dari {addr} \n")
     
-    alice = client_socket.recv(2048)
-    alice = pickle.loads(alice)
+    # alice = client_socket.recv(2048)
+    # alice = pickle.loads(alice)
 
-    e_alice = alice["e"]
-    n_alice = alice["n"]  
+    # e_alice = alice["e"]
+    # n_alice = alice["n"]  
 
-    client_socket.send(pickle.dumps(bob))
+    e_alice = public_key_alice["e"]
+    n_alice = public_key_alice["n"] 
+
+    # client_socket.send(pickle.dumps(bob))
 
  
 
@@ -241,11 +262,17 @@ def start_client():
         data_rec = client_socket.recv(2048)
         
         data_rec = pickle.loads(data_rec)
+
+        print("Data yang diterima: ", data_rec)
         
         cipher_text = data_rec["ciphertext_h1"]
         key = data_rec["key"]
 
-        key_decrypt = rsa.decrypt_rsa(key, d, n)
+        key_decrypt_first = rsa.decrypt_rsa(key, d, n)
+
+        key_decrypt_first = json.loads(key_decrypt_first)
+
+        key_decrypt_second = rsa.decrypt_rsa(key_decrypt_first, e_alice, n_alice)
 
         
         
@@ -254,7 +281,7 @@ def start_client():
         # key_decrypt_second = decrypt_rsa(key_decrypt_first, e_alice, n_alice)
         # print(f"Key decrypt RSA second: {key_decrypt_second}")
 
-        key = key_decrypt
+        key = key_decrypt_second
         key = hex2bin(key)
 
         keyp = [57, 49, 41, 33, 25, 17, 9,
