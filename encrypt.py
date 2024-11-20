@@ -242,7 +242,7 @@ def start_server():
     # print("key encrypt RSA: ", key_encrypt)
 
     key_encrypt = rsa.encrypt_rsa(alice_key, e_bob, n_bob)
-
+    
     # print("key encrypt RSA: ", key_encrypt)
 
 
