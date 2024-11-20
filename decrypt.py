@@ -254,7 +254,7 @@ def start_client():
         # key_decrypt_second = decrypt_rsa(key_decrypt_first, e_alice, n_alice)
         # print(f"Key decrypt RSA second: {key_decrypt_second}")
 
-        key = key_decrypt_second
+        key = key_decrypt
         key = hex2bin(key)
 
         keyp = [57, 49, 41, 33, 25, 17, 9,
