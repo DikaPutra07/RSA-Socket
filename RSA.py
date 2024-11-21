@@ -24,13 +24,10 @@ def mod_inverse(e, phi):
 
 def encrypt_rsa(msg, e, n):
     msg_encoded = [ord(c) for c in msg]
-    # (m^e) mod n = chipertext
-    # pow(c, e, n) = c^e mod n
     chipertext = [pow(c, e, n) for c in msg_encoded]
     return chipertext
 
 def decrypt_rsa(chipertext, d, n):
-    # decryption
 	msg_encoded = [pow(ch, d, n) for ch in chipertext]
 	msg = ''.join([chr(c) for c in msg_encoded])
 	return msg

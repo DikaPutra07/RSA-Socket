@@ -172,11 +172,8 @@ def ecb_decrypt(ciphertext, rkb, rk):
     
     for i in range(0, len(ciphertext), 16):
         block = ciphertext[i:i+16]
-        # print("Block", i, " : ", block)
         decrypted_block = decrypt(block, rkb, rk)
-        # print("Decrypted Block", i, " : ", decrypted_block)
         plaintext += decrypted_block
-        # print("Plaintext", i, " : ", plaintext)
     
     return plaintext
 
@@ -185,29 +182,12 @@ def ecb_decrypt(ciphertext, rkb, rk):
 def start_client():
     # RSA
 
-    # p = generate_prime(100, 1000)
-    # q = generate_prime(100, 1000)
-    # n = p * q
-
-    # phi = (p-1) * (q-1)
-
-    # e = random.randint(3, phi-1)
-
-    # while math.gcd(e, phi) != 1:
-    #     e = random.randint(3, phi-1)
-        
-    # d = mod_inverse(e, phi)
     e = 2123
     d = 77171
     n = 118403
 
     print("Public Key Bob(e, n) : ", e, n)
     print("Private Key Bob(d, n) : ", d, n)
-
-    bob = {
-        "e": e,
-        "n": n
-    } 
 
 
 #   KONEK
@@ -217,16 +197,12 @@ def start_client():
     port = 12345
     pka_socket.connect((host, port))
 
-    # Meminta kunci publik B
     pka_socket.send(b"Alice")
     public_key_alice = pickle.loads(pka_socket.recv(2048))
     e_pka=17
     n_pka=3233
-    d_pka=2753 
     
     public_key_alice = rsa.decrypt_rsa(public_key_alice, e_pka, n_pka)
-    # public_key_alice = json.loads(public_key_alice)
-    # print(f"Kunci publik Bob diterima: {public_key_b}")
     public_key_alice = json.loads(public_key_alice)
     pka_socket.close()
 
@@ -242,19 +218,12 @@ def start_client():
 
     client_socket, addr = server_socket.accept()
     print(f"Menerima koneksi dari {addr} \n")
-    
-    # alice = client_socket.recv(2048)
-    # alice = pickle.loads(alice)
-
-    # e_alice = alice["e"]
-    # n_alice = alice["n"]  
+     
 
     e_alice = public_key_alice["e"]
     n_alice = public_key_alice["n"] 
 
-    # client_socket.send(pickle.dumps(bob))
 
- 
 
 
     while True:
@@ -273,13 +242,6 @@ def start_client():
         key_decrypt_first = json.loads(key_decrypt_first)
 
         key_decrypt_second = rsa.decrypt_rsa(key_decrypt_first, e_alice, n_alice)
-
-        
-        
-        # key_decrypt_first = decrypt_rsa(key, d, n)
-        # print(f"Key decrypt RSA first: {key_decrypt_first}")
-        # key_decrypt_second = decrypt_rsa(key_decrypt_first, e_alice, n_alice)
-        # print(f"Key decrypt RSA second: {key_decrypt_second}")
 
         key = key_decrypt_second
         key = hex2bin(key)
@@ -333,7 +295,6 @@ def start_client():
             rk_decrypt.insert(0, round_key_hex) 
             
 
-        # text = cbc_decrypt(cipher_text, rkb_decrypt, rk_decrypt, iv)
         text = bin2hex(ecb_decrypt(cipher_text, rkb_decrypt, rk_decrypt))
         print("Plain Text hex: ", text)
         text = hex2str(text)

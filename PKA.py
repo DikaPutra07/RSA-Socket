@@ -4,19 +4,6 @@ import RSA as rsa
 import random
 import math, json
 
-
-# keys = {
-#     "Alice": {"e": 543059, "n": 730801},
-#     "Bob": {"e": 2123, "n": 118403}
-# }
-
-
-# keys = {
-#     543059, #e alice
-#     730801, #n alice
-#     "Bob": {"e": 2123, "n": 118403}
-# }
-
 alice = {
     "e": 543059,
     "n": 730801
@@ -54,12 +41,9 @@ def pka_server():
         client_socket, addr = server_socket.accept()
         print(f"Menerima koneksi dari {addr}")
 
-        # Menerima request ID (A/B)
         client_id = client_socket.recv(1024).decode('utf-8')
         print(f"Permintaan kunci publik untuk: {client_id}")
 
-        # Kirim kunci publik yang diminta
-        # if client_id in keys:
         if client_id == "Alice":
             alice_dumps = json.dumps(alice)
             print(f"alice dumps = {alice_dumps}")
@@ -71,14 +55,10 @@ def pka_server():
             print(f"type bob dumps = {type(bob_dumps)}")
             keys_pka = rsa.encrypt_rsa(bob_dumps, d, n)
             print(f"keys = {keys_pka}")
-        # print(f"keys = {keys_pka}")
         
         print(f"keys dumps = {keys_pka}")
         client_socket.send(pickle.dumps(keys_pka))
-        # client_socket.send(pickle.dumps(keys[client_id]))
-        # else:
-        # client_socket.send(b"ID tidak dikenal")
-
+        
         client_socket.close()
 
 
